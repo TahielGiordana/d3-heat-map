@@ -1,0 +1,13 @@
+body {
+  font-family: Poppins, "sans-serif";
+}
+
+h1,
+h2 {
+  text-align: center;
+}
+
+#tooltip {
+  margin-left: 6rem;
+  margin-bottom: 1rem;
+}
