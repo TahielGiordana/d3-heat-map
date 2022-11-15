@@ -57,8 +57,27 @@ const loadHeatMap = (data) => {
     .attr("transform", "translate(" + padding + ",0)")
     .call(yAxis);
 
+  //Add tooltip
+  const tooltip = root
+    .append("div")
+    .attr("id", "tooltip")
+    .style("height", "2rem")
+    .style("width", "auto")
+    .style("visibility", "hidden");
+
   //Add the data
   let cellHeight = (height - 2 * padding) / 12;
+  const colors = [
+    "rgb(114, 0, 0)",
+    "rgb(207, 86, 39)",
+    "rgb(207, 120, 39)",
+    "rgb(223, 198, 89)",
+    "rgb(238, 225, 168)",
+    "rgb(190, 239, 243)",
+    "rgb(176, 197, 243)",
+    "rgb(76, 120, 214)",
+    "rgb(26, 69, 163)",
+  ];
 
   svg
     .selectAll("rect")
@@ -76,32 +95,70 @@ const loadHeatMap = (data) => {
     .attr("fill", (d) => {
       let temperature = baseTemperature + d.variance;
       if (temperature > 11.7) {
-        return "rgb(114, 0, 0)";
+        return colors[0];
       } else if (temperature > 10.6) {
-        return "rgb(207, 86, 39)";
+        return colors[1];
       } else if (temperature > 9.5) {
-        return "rgb(207, 120, 39)";
+        return colors[2];
       } else if (temperature > 8.3) {
-        return "rgb(223, 198, 89)";
+        return colors[3];
       } else if (temperature > 7.2) {
-        return "rgb(238, 225, 168)";
+        return colors[4];
       } else if (temperature > 6.1) {
-        return "rgb(190, 239, 243)";
+        return colors[5];
       } else if (temperature > 5.0) {
-        return "rgb(176, 197, 243)";
+        return colors[6];
       } else if (temperature > 3.9) {
-        return "rgb(76, 120, 214)";
+        return colors[7];
       } else {
-        return "rgb(26, 69, 163)";
+        return colors[8];
       }
     })
-    .append("title")
-    .text((d) => {
-      return (
-        new Date(d.year, d.month - 1).toDateString() +
-        " Temp: " +
-        (baseTemperature + d.variance) +
-        "°C"
+    .on("mouseover", (item) => {
+      tooltip.style("visibility", "visible");
+      tooltip.text(
+        new Date(
+          item.target["__data__"].year,
+          item.target["__data__"].month
+        ).toLocaleDateString("en-Us", { year: "numeric", month: "short" }) +
+          " - Temp: " +
+          (baseTemperature + item.target["__data__"].variance).toFixed(2)
       );
+      tooltip.attr("data-year", item.target["__data__"].year);
+
+      document.getElementById("tooltip");
+    })
+    .on("mouseout", (item) => {
+      tooltip.style("visibility", "hidden");
+      tooltip.text("");
+      tooltip.attr("data-year", "");
     });
+
+  //Add legend
+  const legend = root
+    .append("svg")
+    .attr("id", "legend")
+    .attr("width", padding + colors.length * 50)
+    .attr("height", 200);
+
+  colors.reverse().forEach((color, index) => {
+    legend
+      .append("rect")
+      .attr("fill", color)
+      .attr("width", 50)
+      .attr("height", 50)
+      .attr("x", padding + 50 * index);
+  });
+
+  const legendScale = d3.scaleLinear();
+  legendScale.domain([0, 12]);
+  legendScale.range([padding + 50, padding + colors.length * 50 - 50]);
+
+  const legendAxis = d3.axisBottom(legendScale);
+  legendAxis.ticks(8);
+
+  legend
+    .append("g")
+    .call(legendAxis)
+    .attr("transform", "translate(0," + 50 + ")");
 };
